@@ -53,15 +53,8 @@ sequenceDiagram
                         S->>R: 记录 physical_wait 和原因变化
                     else STOP (稳定 FIFO)
                         P-->>S: STOP
+                        S->>S: 设置 stopped=true 并记录 blocker_job_id
                         S->>R: 记录队首 physical_wait 和原因变化
-                        loop 只读分类余下候选，不启动
-                            S->>M: classify(tail_request)
-                            M-->>S: None (自身可匹配) 或 WaitReason
-                            S->>R: scheduling_result=blocked_by_policy，另记 physical_match
-                            Note over S,R: 自身可匹配时记等待优先级及 blocker_job_id；否则记资源原因
-                        end
-                        break 返回 STOP：余下只读分类后结束启动扫描
-                        end
                     end
                 end
             end
