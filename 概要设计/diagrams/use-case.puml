@@ -1,0 +1,50 @@
+@startuml use-case
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor<<P1>> #EEEEEE
+  BorderColor<<P1>> #999999
+  FontColor<<P1>> #666666
+}
+
+actor "实验者" as E
+actor "场景设计者" as D
+
+rectangle "FlowScape" {
+  usecase "UC-01 载入预设负载并运行仿真" as UC01
+  usecase "UC-02 手工填写或导入作业清单" as UC02
+  usecase "UC-03 启动前校验并定位错误字段" as UC03
+  usecase "UC-04 查询作业状态、等待原因、分配和结果" as UC04
+  usecase "UC-05 查看同一仿真时刻的队列和集群占用" as UC05
+  usecase "UC-06 两种策略的同时钟对照" as UC06
+  usecase "UC-07 按观察窗口查看指标并导出" as UC07
+  usecase "UC-08 凭实验清单重跑并校验一致性" as UC08
+  usecase "UC-09 导入公开轨迹并生成清洗报告" as UC09 <<P1>>
+  usecase "UC-10 回放历史作业的多次尝试" as UC10 <<P1>>
+  usecase "UC-11 配置租户配额与弹性借用" as UC11 <<P1>>
+}
+
+E --> UC01
+E --> UC04
+E --> UC05
+E --> UC06
+E --> UC07
+E --> UC08
+E --> UC10
+
+D --> UC02
+D --> UC09
+D --> UC11
+
+UC01 ..> UC03 : <<include>>
+UC02 ..> UC03 : <<include>>
+UC06 ..> UC05 : <<include>>
+UC04 ..> UC05 : <<extend>>\n点击作业
+UC10 ..> UC04 : <<extend>>\n历史数据源
+
+note bottom of D
+  两种角色可由同一人承担；
+  手工清单通过校验后，
+  与预设负载走同一运行与查询流程。
+end note
+@enduml
