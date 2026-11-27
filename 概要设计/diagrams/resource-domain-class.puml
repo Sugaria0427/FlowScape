@@ -1,7 +1,6 @@
 @startuml
 !pragma layout smetana
 title 资源领域类图
-caption 时间和时长以仿真秒表示
 skinparam shadowing false
 skinparam classAttributeIconSize 0
 hide empty methods
@@ -35,7 +34,7 @@ class Allocation {
   attempt_id
   start_time : float
   end_time : float [0..1]
-  card_keys : (node_id, gpu_id)[]
+  {field} card_keys : (node_id, gpu_id)[]
 }
 
 Platform "1" *-- "1..*" Node : 节点清单
@@ -60,6 +59,7 @@ note right of Allocation
   Allocation 由开始和完成事件重建。
 end note
 note bottom of Platform
+  时间和时长以仿真秒表示。
   P1/P2 扩展点
   P1：每卡显存与作业每卡显存下限
   P2：节点/卡间拓扑、每卡共享模式和份额
