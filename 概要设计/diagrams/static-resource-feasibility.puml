@@ -1,0 +1,37 @@
+@startuml
+title 静态可行性校验时序图
+skinparam shadowing false
+hide footbox
+
+participant "M6 实验管理" as Experiment
+participant "M1 配置载入与校验" as Loader
+participant "M2 资源模型与匹配器" as Matcher
+
+Experiment -> Loader : 校验平台与负载
+Loader -> Loader : 展开预设卡位，执行字段级校验
+alt 平台和请求字段合法
+  loop 每项作业请求
+    Loader -> Matcher : check_static(platform, request)
+    Matcher -> Matcher : 以初始状态和已定义的上下线事件\n求出 arrival_time 时的在线节点
+    loop 到达时刻及后续节点状态变更时刻
+      Matcher -> Matcher : 同刻状态变更处理后，按节点和允许卡型计数\n更新单节点同型号组的最大卡数
+    end
+    note right of Matcher
+      使用场景配置容量。
+      忽略作业占用、队列与观察窗口。
+      始终无匹配组时最大卡数为 0。
+    end note
+    Matcher --> Loader : max_matchable_gpu
+    opt max_matchable_gpu < req_gpu
+      Loader -> Loader : 记录 job_id、字段、请求卡数\n及最大可匹配卡数
+    end
+  end
+else 字段无效
+  Loader -> Loader : 记录字段级错误
+end
+alt 批次存在错误
+  Loader --> Experiment : 返回整批拒绝与字段级报告
+else 全部通过
+  Loader --> Experiment : 返回标准化平台与负载
+end
+@enduml

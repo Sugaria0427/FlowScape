@@ -1,0 +1,34 @@
+@startuml
+title 资源匹配与原子分配活动图
+skinparam shadowing false
+
+start
+:接收通过静态校验的 JobRequest\n及本次调度的资源快照;
+:在在线节点内按 gpu_spec 和 model 分组\n检查每个同节点同型号组的总卡数;
+if (是否有一组总卡数 ≥ req_gpu？) then (是)
+  :逐组检查当前可用的空闲卡数;
+  if (是否有一组空闲卡数 ≥ req_gpu？) then (是)
+    :按 node_id、model、gpu_id\n固定顺序返回可行卡组;
+  else (否)
+    :返回「暂缺资源」及匹配依据;
+    stop
+  endif
+else (否)
+  :返回「所需节点暂不可用」及匹配依据;
+  stop
+endif
+
+:策略选中作业及首个卡组后提交开始决策;
+:内核重新检查节点在线状态、\n同型号卡位和整组空闲状态;
+if (整组仍可分配？) then (是)
+  :一次占用全部卡位并检查账本;
+  :记录 job_started（卡组与时刻）\n清除当前等待原因;
+else (否)
+  :保持原卡位状态\n按当前快照重新判定匹配结果;
+  stop
+endif
+
+:推进仿真至作业完成;
+:同刻先释放原卡组并检查账本\n记录 job_finished，再触发调度;
+stop
+@enduml

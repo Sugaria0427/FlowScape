@@ -1,0 +1,67 @@
+@startuml
+!pragma layout smetana
+title 资源领域类图
+caption 时间和时长以仿真秒表示
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide empty methods
+
+class Platform
+class Node {
+  node_id
+  initial_online = true
+}
+class GPU {
+  gpu_id
+  model
+}
+class AvailabilityEvent {
+  sim_time : float
+  node_id
+  online
+}
+class JobRequest {
+  job_id
+  input_seq
+  tenant_id
+  arrival_time : float
+  req_gpu
+  gpu_spec
+  gpu_milli = 1000
+  est_duration : float
+}
+class Allocation {
+  job_id
+  attempt_id
+  start_time : float
+  end_time : float [0..1]
+  card_keys : (node_id, gpu_id)[]
+}
+
+Platform "1" *-- "1..*" Node : 节点清单
+Platform "1" *-- "0..*" AvailabilityEvent : 上下线事件
+Node "1" *-- "0..*" GPU : 设备清单
+AvailabilityEvent "0..*" --> "1" Node : 引用 node_id
+JobRequest "1" <-- "0..*" Allocation : 归属 job_id
+Allocation "0..*" --> "1..*" GPU : 按卡位键引用
+
+note right of GPU
+  gpu_id 在节点内唯一。
+  model 用于精确匹配；同一节点可有多型号。
+end note
+note left of JobRequest
+  gpu_spec 省略时接受任一型号。
+  指定多个备选值时择一。
+end note
+note right of Allocation
+  每组同节点、同型号、整卡独占。
+  card_keys 的数量等于 req_gpu。
+  同一物理卡的分配区间不得重叠。
+  Allocation 由开始和完成事件重建。
+end note
+note bottom of Platform
+  P1/P2 扩展点
+  P1：每卡显存与作业每卡显存下限
+  P2：节点/卡间拓扑、每卡共享模式和份额
+end note
+@enduml
