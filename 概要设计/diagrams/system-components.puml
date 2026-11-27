@@ -2,39 +2,44 @@
 !pragma layout smetana
 title FlowScape 模块组件与接口
 skinparam componentStyle rectangle
-skinparam nodesep 70
-skinparam ranksep 80
-skinparam defaultFontSize 14
 top to bottom direction
 component "M10 Web 控制台" as M10
 component "M9 服务网关" as M9
 component "M6 实验管理" as M6
-component "M7 运行管理\n与快照查询" as M7
+component "M7 运行管理与快照查询" as M7
 component "M8 指标与导出" as M8
-component "M1 配置载入\n与校验" as M1
-component "M11 轨迹导入器\n（P1）" as M11
+component "M1 配置载入与校验" as M1
+component "M11 轨迹导入器（P1）" as M11
 package "仿真内核（每个 run 独立）" {
-component "M3 事件循环\n与作业生命周期" as M3
+component "M3 事件循环与作业生命周期" as M3
 component "M4 调度策略" as M4
-component "M2 资源模型\n与匹配器" as M2
-component "M5 事件\n与决策记录" as M5
+component "M2 资源模型与匹配器" as M2
+component "M5 事件与决策记录" as M5
 }
-database "实验目录\nmanifest / events\ncheckpoints / results" as Store
-M10 <--> M9 : I01
-M9 --> M6 : I02
-M9 --> M7 : I03
-M9 --> M8 : I04
-M6 --> M1 : I05
-M11 --> M1 : I06
-M1 --> M2 : I07
-M6 --> M7 : I08
-M7 <--> M3 : I09
-M3 --> M4 : I10
-M3 --> M2 : I11
-M3 --> M5 : I12
-M5 --> Store : I13
-M6 --> Store : I14
-M7 --> Store : I15
-M8 --> Store : I16
-caption 接口编号对应说明文档中的接口表；双向箭头包含调用与通知。
+database "实验目录\nmanifest / events / checkpoints / results" as Store
+M10 <--> M9 : HTTP 命令与查询\nWebSocket 水位与事件通知
+M9 --> M6 : 函数：create / rerun
+M9 --> M7 : 函数：control / snapshot / job_history
+M9 --> M8 : 函数：metrics / export
+M6 --> M1 : 函数：load / validate
+M11 --> M1 : 函数：标准化输入与清洗报告
+M1 --> M2 : 函数：check_static
+M6 --> M7 : 函数：create_runs（冻结清单）
+M7 <--> M3 : 函数：advance\n回调：同刻结束、水位
+M3 --> M4 : 函数：candidate_order / on_match_failure
+M3 --> M2 : 函数：feasible / classify / 原子分配释放
+M3 --> M5 : 函数：append(Event)
+M5 --> Store : 追加事件记录
+M6 --> Store : 写入清单与输入
+M7 --> Store : 读取事件 / 写读检查点
+M8 --> Store : 读取事件 / 写入导出结果
+note right of M4
+只读取 SchedulerView
+不接触 JobTruth 或未来事件
+end note
+note right of M7
+检查点是派生缓存
+事件记录是唯一事实来源
+运行未就绪时不返回旧快照冒充
+end note
 @enduml
