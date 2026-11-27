@@ -15,11 +15,15 @@ component "M3 事件循环与作业生命周期" as M3
 component "M4 调度策略" as M4
 component "M2 资源模型与匹配器" as M2
 component "M5 事件与决策记录" as M5
+note bottom of M4
+只读取 SchedulerView
+不接触 JobTruth 或未来事件
+end note
 }
 database "实验目录\nmanifest / events / checkpoints / results" as Store
 M10 <--> M9 : HTTP 命令与查询\nWebSocket 水位与事件通知
-M9 --> M6 : 函数：create / rerun
-M9 --> M7 : 函数：control / snapshot / job_history
+M9 --> M6 : 输入校验与同源校验\ncreate / rerun
+M9 --> M7 : 运行控制与快照\n事件查询与提交边界
 M9 --> M8 : 函数：metrics / export
 M6 --> M1 : 函数：load / validate
 M11 --> M1 : 函数：标准化输入与清洗报告
@@ -31,12 +35,9 @@ M3 --> M2 : 函数：feasible / classify / 原子分配释放
 M3 --> M5 : 函数：append(Event)
 M5 --> Store : 追加事件记录
 M6 --> Store : 写入清单与输入
-M7 --> Store : 读取事件 / 写读检查点
+M7 --> Store : 读取事件 / 读写检查点
 M8 --> Store : 读取事件 / 写入导出结果
-note right of M4
-只读取 SchedulerView
-不接触 JobTruth 或未来事件
-end note
+M6 -right-> M8 : 重跑指标计算
 note right of M7
 检查点是派生缓存
 事件记录是唯一事实来源
